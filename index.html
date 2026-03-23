@@ -140,6 +140,24 @@
       padding: 24px;
     }
 
+    @media (max-width: 600px) {
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .gallery-item .item-footer {
+        font-size: 10px;
+        padding: 4px 6px;
+      }
+
+      .item-number {
+        font-size: 10px;
+        padding: 2px 5px;
+      }
+    }
+
     .gallery-item {
       background: white;
       border-radius: 12px;
