@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ライブ配信 商品ギャラリー</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1877f2;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    header span {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .toolbar {
+      background: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #ddd;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .btn-select {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-select:hover {
+      background: #1558b0;
+    }
+
+    .btn-clear {
+      background: #e4e6eb;
+      color: #333;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-clear:hover {
+      background: #cdd0d5;
+    }
+
+    .btn-clear:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .count-badge {
+      background: #e4e6eb;
+      color: #333;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .empty-state .icon {
+      font-size: 72px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      font-size: 22px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+      color: #888;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .gallery-item {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-item .item-footer {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-number {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(24, 119, 242, 0.85);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .btn-remove-item {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.55);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .gallery-item:hover .btn-remove-item {
+      opacity: 1;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 20px;
+      right: 28px;
+      color: white;
+      font-size: 36px;
+      cursor: pointer;
+      font-weight: 300;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>ライブ配信 商品ギャラリー</h1>
+      <span>選択した商品画像をまとめて表示・確認できます</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn-select" onclick="document.getElementById('file-input').click()">
+      &#128247; 画像を選択
+    </button>
+    <input type="file" id="file-input" accept="image/*" multiple>
+    <button class="btn-clear" id="btn-clear" onclick="clearAll()" disabled>
+      &#128465; すべて削除
+    </button>
+    <span class="count-badge" id="count-badge">0 枚</span>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <div class="icon">&#128247;</div>
+    <h2>画像を選択してください</h2>
+    <p>「画像を選択」ボタンから複数の商品写真を一括で選べます</p>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close" onclick="closeLightbox()">&#10005;</span>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file-input');
+    const gallery = document.getElementById('gallery');
+    const emptyState = document.getElementById('empty-state');
+    const countBadge = document.getElementById('count-badge');
+    const btnClear = document.getElementById('btn-clear');
+
+    let images = [];
+
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          images.push({ src: ev.target.result, name: file.name });
+          renderGallery();
+        };
+        reader.readAsDataURL(file);
+      });
+      fileInput.value = '';
+    });
+
+    function renderGallery() {
+      gallery.innerHTML = '';
+      if (images.length === 0) {
+        emptyState.style.display = 'flex';
+        countBadge.textContent = '0 枚';
+        btnClear.disabled = true;
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      countBadge.textContent = images.length + ' 枚';
+      btnClear.disabled = false;
+
+      images.forEach((img, i) => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+          <span class="item-number">${i + 1}</span>
+          <img src="${img.src}" alt="${img.name}" onclick="openLightbox(${i})">
+          <button class="btn-remove-item" onclick="removeItem(${i})" title="削除">&#10005;</button>
+          <div class="item-footer">${img.name}</div>
+        `;
+        gallery.appendChild(item);
+      });
+    }
+
+    function removeItem(index) {
+      images.splice(index, 1);
+      renderGallery();
+    }
+
+    function clearAll() {
+      if (confirm('すべての画像を削除しますか？')) {
+        images = [];
+        renderGallery();
+      }
+    }
+
+    function openLightbox(index) {
+      document.getElementById('lightbox-img').src = images[index].src;
+      document.getElementById('lightbox').classList.add('active');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
+
+</body>
+</html>
